@@ -4,6 +4,7 @@ class smartsms{
 
     private function generate_refid(){
 
+        //This is a sample refID generator. Supply your refID generator here
         $ref_id_generator = substr(sha1(time()), 0, 16);
         return 'refId'. $ref_id_generator;
 
@@ -11,13 +12,13 @@ class smartsms{
 
     private function get_server_token(){
 
-        $server_token = 'Ls3p7ySpccZWGMR2oHCY8GzNcAYrLJxpQ2fT7BCJxzQaR2Iptd878UYrMeTAW3fNpPjtyiYthD5gIsEpEDDttdcKdP2uUEcdiQeO';
+        $server_token = 'Enter Token Here';
         return $server_token;
 
     }
 
     private function get_apix_token(){
-        $apix_token = 'Ls3p7ySpccZWGMR2oHCY8GzNcAYrLJxpQ2fT7BCJxzQaR2Iptd878UYrMeTAW3fNpPjtyiYthD5gIsEpEDDttdcKdP2uUEcdiQeO';
+        $apix_token = 'Enter Token Here';
         return $apix_token;
     }
 
@@ -146,7 +147,6 @@ class smartsms{
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
-            //CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/phone/info/?token='. $token .'&phone='. $phone_numbers .'&type='. $type .'',
               CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/phone/info/?token='. $token .'&phone='. @$phone_numbers .'&type='. @$type .'',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
