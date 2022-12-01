@@ -4,7 +4,6 @@ class smartsms{
 
     private function generate_refid(){
 
-        // This is a sample refID generator. Design refID as preferred
         $ref_id_generator = substr(sha1(time()), 0, 16);
         return 'refId'. $ref_id_generator;
 
@@ -12,25 +11,19 @@ class smartsms{
 
     private function get_server_token(){
 
-        $server_token = 'Enter Token Here';
+        $server_token = 'Ls3p7ySpccZWGMR2oHCY8GzNcAYrLJxpQ2fT7BCJxzQaR2Iptd878UYrMeTAW3fNpPjtyiYthD5gIsEpEDDttdcKdP2uUEcdiQeO';
         return $server_token;
 
     }
 
     private function get_apix_token(){
-        $apix_token = 'Enter Token Here';
+        $apix_token = 'Ls3p7ySpccZWGMR2oHCY8GzNcAYrLJxpQ2fT7BCJxzQaR2Iptd878UYrMeTAW3fNpPjtyiYthD5gIsEpEDDttdcKdP2uUEcdiQeO';
         return $apix_token;
     }
 
-    public function sendsms(){
-        if(isset ($_POST['send_sms'])) {
-            $senderID         = $_POST['senderId'];
-            $receipients      = $_POST['to'];
-            $message          = $_POST['message'];
-            $type             = $_POST['type'];
-            $route            = $_POST['routing'];
-            $sms = new smartsms();
-            
+    public function sendsms($senderID, $receipients, $message, $type, $route){
+
+            $token = $this->get_apix_token();
             $curl = curl_init();
             
             curl_setopt_array($curl, array(
@@ -59,11 +52,7 @@ class smartsms{
             curl_close($curl);
             echo $response;
 
-            header("Location: ../send_sms.php");
-
             //header("Location: http://www.redirect.to.url.com/");
-
-        }
     }   
 
     public function get_balance(){
@@ -93,15 +82,8 @@ class smartsms{
 
     }
 
-    public function submit_sender_id(){
-
-        if(isset ($_POST['submit_sender_id'])) {
-            $senderID                = $_POST['sender-id'];
-            $message_content         = $_POST['message-content'];
-            $organisation_name       = $_POST['organisation-name'];
-            $registration_number     = $_POST['registration-number'];
-            $business_address        = $_POST['business-address'];
-            $sms = new smartsms();
+    public function submit_sender_id($senderID, $message_content, $organisation_name, $registration_number, $business_address){
+            $token = $this->get_apix_token();
 
             $curl = curl_init();
 
@@ -128,7 +110,6 @@ class smartsms{
 
             curl_close($curl);
             echo $response;
-        }
 
     }
 
@@ -160,20 +141,13 @@ class smartsms{
     }
 
     public function get_phone_info(){
-        $token = $this->get_apix_token();
-
-        if (isset($_POST['get_phone_info_submit'])) {
-            $phone_numbers = $_POST['phone_numbers'];
-            $type = $_POST['type'];
-
-            //echo($phone_numbers. ' ' .  $type);
-
+            $token = $this->get_apix_token();
 
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
             //CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/phone/info/?token='. $token .'&phone='. $phone_numbers .'&type='. $type .'',
-              CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/phone/info/?token='. $token .'&phone='. $phone_numbers .'&type='. $type .'',
+              CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/phone/info/?token='. $token .'&phone='. @$phone_numbers .'&type='. @$type .'',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -187,8 +161,6 @@ class smartsms{
 
             curl_close($curl);
             echo $response;
-
-        }
 
     }
     
