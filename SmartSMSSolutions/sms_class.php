@@ -1,6 +1,6 @@
 <?php
 
-require 'dbwrapper_class.php';
+require 'inc.class.dbwrapper.php';
 
 class smartsms{
 
@@ -49,6 +49,14 @@ class smartsms{
         foreach($template_codes as $t) {
             $this->template_code = $t['stc_code'];
         }
+
+        // Get voice otp class
+        $product_name = 'smartsms';
+        $where = array('svoc_product_name' => $product_name);
+        $voice_otp_codes = $db->select_where('voice_otp_class',$where);
+        foreach($voice_otp_codes as $v) {
+            $this->voice_otp_code = $v['svoc_code'];
+        }
     }
 
     private function get_apix_token() {
@@ -71,6 +79,10 @@ class smartsms{
         return $this->sender_id;
     }
 
+    private function get_voice_otp_class(){
+        return $this->sender_id;
+    }
+
 
     public function generate_refid(){
 
@@ -86,50 +98,55 @@ class smartsms{
             for ($i = 0; $i < $digits; $i++) {
                 $otp .= rand(0, 9);
             }
-        return $otp;
+            return $otp;
 
     }
 
     public function sendsms($senderID, $receipients, $message, $type, $route,$schedule, $ref_id){
 
-        $db = new dbwrapper();
-        $apix_token;
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-        CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/sms/',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => array(
-                                        'token' => $this::get_apix_token(),
-                                        'sender' => $senderID,
-                                        'to' => $receipients,
-                                        'message' => $message,
-                                        'type' => $type,
-                                        'routing' => $route,
-                                        'ref_id' => $ref_id,
-                                        'simserver_token' => $this::get_server_token(),
-                                        'schedule' => $schedule,
+            //$token = $this->get_apix_token();
+            $db = new dbwrapper();
+            $apix_token;
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/sms/',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => array(
+                                            'token' => $this::get_apix_token(),
+                                            'sender' => $senderID,
+                                            'to' => $receipients,
+                                            'message' => $message,
+                                            'type' => $type,
+                                            'routing' => $route,
+                                            'ref_id' => $ref_id,
+                                            'simserver_token' => $this::get_server_token(),
+                                            'schedule' => $schedule,
+                                            // 'token' => $final_apix_token,
+                                            // 'ref_id' => $this::generate_refid(),
+                                            // 'simserver_token' => $final_server_token,
+                                            
+                                        ),
+            ));
+            $response = curl_exec($curl);
+            curl_close($curl);
+            // echo '<pre>';
+            return $response;
+            
+            $data = json_decode($response, true);
 
-                                    ),
-        ));
-        $response = curl_exec($curl);
-        curl_close($curl);
-        echo '<pre>';
-        echo $response;
+            // Insert data into database
+            if ($data !== null && is_array($data)) {
+                $store = $db->insert('response_callback', $data);
 
-        $data = json_decode($response, true);
+            }
 
-        // Insert data into database
-        if ($data !== null && is_array($data)) {
-            $store = $db->insert('response_callback', $data);
-
-        }
-
+            //header("Location: http://www.redirect.to.url.com/");
     }   
 
     public function get_balance(){
@@ -162,42 +179,42 @@ class smartsms{
     }
 
     public function submit_sender_id($senderID, $message_content, $organisation_name, $registration_number, $business_address){
-        $db = new dbwrapper();
-        $token = $this->get_apix_token();
+            $db = new dbwrapper();
+            $token = $this->get_apix_token();
 
-        $curl = curl_init();
+            $curl = curl_init();
 
-        curl_setopt_array($curl, array(
-        CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/senderid/create/',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => array(
-                                    'token'         => $this::get_apix_token(),
-                                    'senderid'      => $senderID,
-                                    'message'       => $message_content,
-                                    'organisation'  => $organisation_name,
-                                    'regno'         => $registration_number,
-                                    'address'       => $business_address
-                                ),
-        ));
+            curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/senderid/create/',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => array(
+                                        'token'         => $this::get_apix_token(),
+                                        'senderid'      => $senderID,
+                                        'message'       => $message_content,
+                                        'organisation'  => $organisation_name,
+                                        'regno'         => $registration_number,
+                                        'address'       => $business_address
+                                    ),
+            ));
 
-        $response = curl_exec($curl);
+            $response = curl_exec($curl);
 
-        curl_close($curl);
-        return $response;
+            curl_close($curl);
+            return $response;
+            
+            $data = json_decode($response, true);
 
-        $data = json_decode($response, true);
-
-        if (isset($data['success'])) {
-            $success = $data['success'] ? 'true' : 'false';
-            $comment = $data['comment'];
-            $store = $db->insert('response_submit_senderid', array('success' => $success, 'comment' => $comment));
-        }
+            if (isset($data['success'])) {
+                $success = $data['success'] ? 'true' : 'false';
+                $comment = $data['comment'];
+                $store = $db->insert('response_submit_senderid', array('success' => $success, 'comment' => $comment));
+            }
 
 
 
@@ -248,35 +265,66 @@ class smartsms{
     
 
     public function get_phone_info($receipients, $type){
-        $token = $this->get_apix_token();
+            $token = $this->get_apix_token();
 
-        $curl = curl_init();
+            $curl = curl_init();
 
-        curl_setopt_array($curl, array(
-        CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/phone/info/?token='. $token .'&phone='. @$receipients .'&type='. @$type .'',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'GET',
-        ));
+            curl_setopt_array($curl, array(
+            //CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/phone/info/?token='. $token .'&phone='. $phone_numbers .'&type='. $type .'',
+            CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/phone/info/?token='. $token .'&phone='. @$receipients .'&type='. @$type .'',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            ));
 
-        $response = curl_exec($curl);
+            $response = curl_exec($curl);
 
-        curl_close($curl);
-        echo $response;
+            curl_close($curl);
+            return $response;
 
     }
 
 
     public function send_sms_otp($receipients){
 
+    $curl = curl_init();
+
+    curl_setopt_array($curl, array(
+    CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/smsotp/send/',
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_ENCODING => '',
+    CURLOPT_MAXREDIRS => 10,
+    CURLOPT_TIMEOUT => 0,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    CURLOPT_CUSTOMREQUEST => 'POST',
+    CURLOPT_POSTFIELDS => array(
+                                'token' => $this::get_apix_token(),
+                                'phone' => $receipients,
+                                'otp' => $this::generate_otp(),
+                                'sender' => $this::get_senderID(),
+                                'app_name_code' => $this::get_app_name_code(),
+                                'template_code' => $this::get_template_code(),
+                                'ref_id' => $this::generate_refid()
+                            ),
+    ));
+
+    $response = curl_exec($curl);
+
+    curl_close($curl);
+    return $response;
+
+    }
+
+    public function send_voiceotp($receipients){
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-        CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/smsotp/send/',
+        CURLOPT_URL => 'https://smartsmssolutions.com/io/client/v1/voiceotp/send/',
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
@@ -288,48 +336,16 @@ class smartsms{
                                     'token' => $this::get_apix_token(),
                                     'phone' => $receipients,
                                     'otp' => $this::generate_otp(),
-                                    'sender' => $this::get_senderID(),
-                                    'app_name_code' => $this::get_app_name_code(),
-                                    'template_code' => $this::get_template_code(),
+                                    'class' => $this::get_voice_otp_class(),
                                     'ref_id' => $this::generate_refid()
-                                ),
+                                    ),
         ));
 
         $response = curl_exec($curl);
 
         curl_close($curl);
         return $response;
-
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
+    }    
     
 
     public function inbox_forward(){
@@ -352,6 +368,73 @@ class smartsms{
                 
             }
         }
+    }
+
+    public function buy_airtime($receipients, $amount){
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/airtime/buy/',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => array(
+                                    'phone' => $receipients,
+                                    'amount' => $amount,
+                                    'token' => $this::get_apix_token(),
+                                    'ref_id' => $this::generate_refid()
+                                ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
+    }
+
+    public function buy_internet_data($receipients, $data_product_name){
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/internet_data/buy/',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => 'phone='. @$receipients .'&product_name='. $data_product_name .'&token='. $this::get_apix_token() .'&ref_id='. $this::generate_refid()
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
+    }
+
+    public function get_data_product_list($receipients){
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/internet_data/products/?phone='. @$receipients .'&token='. $this::get_apix_token(),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
     }
     
 }
