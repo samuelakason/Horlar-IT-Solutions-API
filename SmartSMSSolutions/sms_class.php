@@ -1,6 +1,6 @@
 <?php
 
-require 'inc.class.dbwrapper.php';
+require 'dbwrapper_class.php';
 
 class smartsms{
 
