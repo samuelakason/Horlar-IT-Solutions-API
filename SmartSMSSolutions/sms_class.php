@@ -86,7 +86,7 @@ class smartsms{
             for ($i = 0; $i < $digits; $i++) {
                 $otp .= rand(0, 9);
             }
-            return $otp;
+        return $otp;
 
     }
 
