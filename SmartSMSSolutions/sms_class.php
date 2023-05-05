@@ -103,8 +103,7 @@ class smartsms{
     }
 
     public function sendsms($senderID, $receipients, $message, $type, $route,$schedule, $ref_id){
-
-            //$token = $this->get_apix_token();
+        
             $db = new dbwrapper();
             $apix_token;
             $curl = curl_init();
@@ -127,15 +126,11 @@ class smartsms{
                                             'ref_id' => $ref_id,
                                             'simserver_token' => $this::get_server_token(),
                                             'schedule' => $schedule,
-                                            // 'token' => $final_apix_token,
-                                            // 'ref_id' => $this::generate_refid(),
-                                            // 'simserver_token' => $final_server_token,
-                                            
+                                                                                        
                                         ),
             ));
             $response = curl_exec($curl);
             curl_close($curl);
-            // echo '<pre>';
             return $response;
             
             $data = json_decode($response, true);
@@ -146,7 +141,6 @@ class smartsms{
 
             }
 
-            //header("Location: http://www.redirect.to.url.com/");
     }   
 
     public function get_balance(){
@@ -171,8 +165,6 @@ class smartsms{
 
         $data = file_get_contents("php://input");
         $events = json_decode($response, true);
-
-        // echo "Your current SmartSMS balance is: " . $response;
 
         return $response;
 
@@ -270,7 +262,6 @@ class smartsms{
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
-            //CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/phone/info/?token='. $token .'&phone='. $phone_numbers .'&type='. $type .'',
             CURLOPT_URL => 'https://app.smartsmssolutions.com/io/api/client/v1/phone/info/?token='. $token .'&phone='. @$receipients .'&type='. @$type .'',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
